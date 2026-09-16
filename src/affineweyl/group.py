@@ -1,5 +1,8 @@
 """Affine Weyl groups (untwisted) as Coxeter groups realized by W ⋉ Q∨.
 
+The natural projection ``π: W̃ → W ≅ W̃ / Q∨`` (drop translation) is exposed
+as :meth:`AffineWeylGroup.project_to_finite` / :meth:`finite_projection`.
+
 No I/O in this module.
 """
 
@@ -17,6 +20,7 @@ from .cartan import (
     validate_rank,
 )
 from .element import AffineWeylElement
+from .finite import FiniteWeylElement
 from .root_system import (
     FiniteRootSystem,
     Vector,
@@ -317,6 +321,35 @@ class AffineWeylGroup:
     def pairing_weight_coroot(self, lam: Sequence[int], j: int) -> int:
         """``⟨λ, α_j∨⟩`` for finite simple coroot index ``j`` (0-based)."""
         return self.root_system.pairing_weight_coroot(lam, j)
+
+
+    # --- quotient map π: W̃ → W ≅ W̃ / Q∨ ---------------------------------
+
+    def project_to_finite(self, element: AffineWeylElement) -> FiniteWeylElement:
+        """Project an affine element to the finite Weyl group: ``π(w, λ) = w``.
+
+        This is the quotient homomorphism ``W̃ → W̃ / Q∨ ≅ W``.  The kernel
+        is the translation subgroup ``{t_λ : λ ∈ Q∨}``.
+        """
+        if not isinstance(element, AffineWeylElement):
+            raise TypeError("expected AffineWeylElement")
+        if element.group.label != self.label:
+            raise ValueError(
+                f"element belongs to {element.group.label}, not {self.label}"
+            )
+        return element.to_finite()
+
+    def finite_projection(self, element: AffineWeylElement) -> FiniteWeylElement:
+        """Alias for :meth:`project_to_finite`."""
+        return self.project_to_finite(element)
+
+    def finite_identity(self) -> FiniteWeylElement:
+        """Identity element of the finite Weyl group ``W``."""
+        return FiniteWeylElement.identity(self)
+
+    def finite_simple(self, i: int) -> FiniteWeylElement:
+        """Finite simple reflection ``s_i`` with ``i`` in ``0 .. n-1``."""
+        return FiniteWeylElement.simple(self, i)
 
     def __repr__(self) -> str:
         return f"AffineWeylGroup({self.label!r})"

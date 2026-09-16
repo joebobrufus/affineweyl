@@ -63,6 +63,29 @@ Translations ``t_λ`` are the elements ``(id, λ)`` in ``W ⋉ Q∨``.  Their af
 matrices); in particular ``s_0 = t_{θ∨} ∘ s_θ``.
 
 
+
+## Finite projection π: W̃ → W
+
+The quotient map ``π: W̃ → W̃ / Q∨ ≅ W`` drops the translation and keeps the
+finite Weyl factor: ``π(w, λ) = w``.  Translations ``t_λ`` form the kernel,
+and ``π`` is a group homomorphism.
+
+```python
+from affineweyl import AffineWeylGroup
+
+W = AffineWeylGroup.from_label("A~2")
+t = W.translation((1, 0))
+assert t.to_finite().is_identity()          # π(t_λ) = 1
+assert W.simple(1).to_finite() == W.finite_simple(0)  # π(s_1) = s_0^{finite}
+# π(s_0) = s_θ (finite reflection in the highest root)
+x, y = W.from_word([0, 1]), W.from_word([2, 0])
+assert (x * y).to_finite() == x.to_finite() * y.to_finite()
+# also: element.finite_part, W.project_to_finite(element), W.finite_projection(element)
+```
+
+The image is a :class:`FiniteWeylElement` (finite ``w_roots`` / ``w_coroots``
+matrices) with multiply / compare / inverse.
+
 ## Weight lattice (finite)
 
 Classical weights live in the fundamental-weight basis: an ``n``-tuple

@@ -28,6 +28,12 @@ lattices (coordinates in the affine simple (co)root bases of size n+1).
 If ``α = x · α_i`` for a simple root ``α_i``, the associated coroot is
 ``α∨ = x · α_i∨`` — same ``x``, corresponding simple coroot.
 
+Projection to the finite Weyl group
+---------------------------------
+The quotient map ``π: W̃ → W̃ / Q∨ ≅ W`` drops the translation and keeps
+``w``: ``π(w, λ) = w``.  Use :meth:`AffineWeylElement.to_finite` /
+:attr:`finite_part`.  Translations form the kernel.
+
 No I/O in this module.
 """
 
@@ -303,6 +309,29 @@ class AffineWeylElement:
 
     def __hash__(self) -> int:
         return hash((self.group.label, self.w_roots, self.w_coroots, self.translation))
+
+
+    # --- projection π: W̃ → W ---------------------------------------------
+
+    def to_finite(self) -> "FiniteWeylElement":
+        """Project to the finite Weyl group via ``π(w, λ) = w``.
+
+        This is the quotient map ``W̃ → W̃ / Q∨ ≅ W``: translations
+        ``t_λ`` form the kernel, and ``π`` is the identity on pure finite
+        elements (``translation = 0``).  Homomorphism: ``π(xy) = π(x)π(y)``.
+        """
+        from .finite import FiniteWeylElement
+
+        return FiniteWeylElement(
+            group=self.group,
+            w_roots=self.w_roots,
+            w_coroots=self.w_coroots,
+        )
+
+    @property
+    def finite_part(self) -> "FiniteWeylElement":
+        """Alias for :meth:`to_finite` (the finite Weyl factor ``w``)."""
+        return self.to_finite()
 
     def __repr__(self) -> str:
         if self.is_identity():
