@@ -10,6 +10,9 @@ Weyl group (elements with ``translation = 0``).
 
 Homomorphism property: ``π(xy) = π(x) π(y)``.
 
+Finite elements act on the classical weight lattice ``P`` (fundamental-weight
+coordinates) via :meth:`FiniteWeylElement.act_on_weight`.
+
 No I/O in this module.
 """
 
@@ -23,6 +26,7 @@ from .root_system import Matrix, Vector, _identity, _matmul, _matmatmul
 
 if TYPE_CHECKING:
     from .group import AffineWeylGroup
+    from .weight_lattice import WeightCoords
 
 
 def _invert_matrix(M: Matrix) -> Matrix:
@@ -162,6 +166,55 @@ class FiniteWeylElement:
                 f"coroot has length {len(coroot)}, expected {self.group.finite_rank}"
             )
         return _matmul(self.w_coroots, tuple(int(x) for x in coroot))
+
+    def act_on_weight(self, lam: Sequence[int]) -> "WeightCoords":
+        """Act on a weight in fundamental-weight coordinates.
+
+        Implements the linear action of ``w ∈ W`` on the weight lattice ``P``.
+        Coordinates are converted to the simple-root basis (over ``Q``),
+        transformed by :attr:`w_roots`, then converted back with the Cartan
+        matrix — consistent with the existing root action and
+        :class:`~affineweyl.weight_lattice.WeightLattice` converters.
+
+        Equivalently, for a simple reflection,
+        ``s_i(λ) = λ - ⟨λ, α_i∨⟩ α_i``, and since ``⟨λ, α_i∨⟩`` is the ``i``-th
+        fund-weight coordinate of ``λ`` while ``α_i`` has fund-weight
+        coordinates equal to the ``i``-th column of the Cartan matrix ``A``,
+        one has ``s_i(λ)_fund = λ - λ_i · (column i of A)``.
+
+        Parameters
+        ----------
+        lam :
+            Weight as an ``n``-tuple of integers in the ``ω``-basis.
+
+        Returns
+        -------
+        WeightCoords
+            ``w · λ`` in the same fundamental-weight coordinates.
+        """
+        n = self.group.finite_rank
+        if len(lam) != n:
+            raise ValueError(f"weight has length {len(lam)}, expected {n}")
+        for i, x in enumerate(lam):
+            if isinstance(x, bool) or not isinstance(x, int):
+                raise TypeError(
+                    f"weight coordinate {i} must be an int, got {type(x).__name__}"
+                )
+        P = self.group.weight_lattice
+        # μ = A^{-1} λ  (simple-root coords over Q), then A (w_roots μ)
+        root_coords = P.to_simple_root_coords(lam)
+        acted = tuple(
+            sum(Fraction(self.w_roots[i][j]) * root_coords[j] for j in range(n))
+            for i in range(n)
+        )
+        A = P.cartan
+        out = []
+        for i in range(n):
+            val = sum(Fraction(A[i][j]) * acted[j] for j in range(n))
+            if val.denominator != 1:
+                raise ValueError(f"Non-integral weight coordinate {val}")
+            out.append(int(val))
+        return tuple(out)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, FiniteWeylElement):

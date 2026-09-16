@@ -322,6 +322,19 @@ class AffineWeylGroup:
         """``⟨λ, α_j∨⟩`` for finite simple coroot index ``j`` (0-based)."""
         return self.root_system.pairing_weight_coroot(lam, j)
 
+    def act_on_weight(
+        self,
+        w: "AffineWeylElement | FiniteWeylElement",
+        lam: Sequence[int],
+    ) -> Vector:
+        """Act with a Weyl element on a weight in fund-weight coordinates.
+
+        Accepts a :class:`FiniteWeylElement` or an :class:`AffineWeylElement`
+        (affine elements act through ``π``, so translations act trivially).
+        Delegates to :meth:`WeightLattice.act` / 
+        :meth:`FiniteWeylElement.act_on_weight`.
+        """
+        return self.weight_lattice.act(w, lam)
 
     # --- quotient map π: W̃ → W ≅ W̃ / Q∨ ---------------------------------
 

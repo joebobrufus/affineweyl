@@ -13,6 +13,9 @@ correspond to simple-root coords ``A^{-1} λ`` (rational in general).
 
 The root lattice satisfies ``Q ⊂ P`` with index ``|P/Q| = |det A|``.
 
+The finite Weyl group acts on ``P``; see :meth:`WeightLattice.act` and
+:meth:`~affineweyl.finite.FiniteWeylElement.act_on_weight`.
+
 No I/O in this module.
 """
 
@@ -21,10 +24,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from fractions import Fraction
 from functools import cached_property
-from typing import Sequence, Tuple
+from typing import TYPE_CHECKING, Sequence, Tuple, Union
 
 from .cartan import Matrix
 from .root_system import FiniteRootSystem, Vector, _dot, _matmul
+
+if TYPE_CHECKING:
+    from .element import AffineWeylElement
+    from .finite import FiniteWeylElement
 
 WeightCoords = Tuple[int, ...]  # fundamental-weight basis
 RationalCoords = Tuple[Fraction, ...]
@@ -181,6 +188,39 @@ class WeightLattice:
     def is_in_coroot_lattice(self, coweight: Sequence[int]) -> bool:
         """Return True iff the coweight lies in the coroot lattice ``Q∨``."""
         return self.is_in_root_lattice(coweight)
+
+    def act(
+        self,
+        w: "Union[FiniteWeylElement, AffineWeylElement]",
+        lam: Sequence[int],
+    ) -> WeightCoords:
+        """Return ``w · λ`` in fundamental-weight coordinates.
+
+        ``w`` may be a :class:`~affineweyl.finite.FiniteWeylElement` or an
+        :class:`~affineweyl.element.AffineWeylElement` (the latter acts via
+        its finite projection ``π``, so translations act as the identity on
+        ``P``).
+
+        See :meth:`~affineweyl.finite.FiniteWeylElement.act_on_weight` for the
+        coordinate convention (``w_roots`` on simple-root coords, converted
+        back with the Cartan matrix).
+        """
+        from .element import AffineWeylElement
+        from .finite import FiniteWeylElement
+
+        if isinstance(w, AffineWeylElement):
+            w = w.to_finite()
+        if not isinstance(w, FiniteWeylElement):
+            raise TypeError(
+                "w must be a FiniteWeylElement or AffineWeylElement, "
+                f"got {type(w).__name__}"
+            )
+        if w.group.series != self.series or w.group.finite_rank != self.rank:
+            raise ValueError(
+                f"element type {w.group.label} incompatible with "
+                f"WeightLattice({self.series}_{self.rank})"
+            )
+        return w.act_on_weight(lam)
 
     def __repr__(self) -> str:
         return f"WeightLattice({self.series}_{self.rank})"

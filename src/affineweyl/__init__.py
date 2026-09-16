@@ -17,7 +17,9 @@ Weight lattice
 --------------
 The classical weight lattice ``P`` is exposed via ``W.weight_lattice`` /
 ``FiniteRootSystem.weight_lattice``.  Weights are integer tuples in the
-fundamental-weight basis (0-based).  See :mod:`affineweyl.weight_lattice`.
+fundamental-weight basis (0-based).  Finite Weyl elements act via
+``FiniteWeylElement.act_on_weight`` / ``WeightLattice.act`` /
+``W.act_on_weight``.  See :mod:`affineweyl.weight_lattice`.
 
 Finite projection
 -----------------

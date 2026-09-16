@@ -105,7 +105,16 @@ assert P.index_P_mod_Q == 3               # |P/Q| = n+1 for A_n
 assert P.from_simple_root_coords((1, 0)) == (2, -1)
 assert P.is_in_root_lattice((2, -1))
 assert not P.is_in_root_lattice((1, 0))   # ω_0 ∉ Q for A_2
+# finite Weyl action on P (fund-weight coords)
+s0 = W.finite_simple(0)
+assert s0.act_on_weight(omega0) == P.act(s0, omega0)
+# s_i(ω_i) = ω_i - α_i; translations act via π as id
+assert W.translation((1, 0)).act_on_weight(omega0) == omega0
 ```
+
+The action uses ``w_roots`` on simple-root coordinates of ``λ`` (over ``Q``),
+then converts back with the Cartan matrix; equivalently
+``s_i(λ) = λ - ⟨λ, α_i∨⟩ α_i`` in fund-weight coords.
 
 ## CLI
 

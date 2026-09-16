@@ -333,6 +333,21 @@ class AffineWeylElement:
         """Alias for :meth:`to_finite` (the finite Weyl factor ``w``)."""
         return self.to_finite()
 
+    def act_on_weight(self, lam: Sequence[int]):
+        """Act on a classical weight via the finite projection ``π``.
+
+        Equivalent to ``self.to_finite().act_on_weight(lam)``.  In particular
+        pure translations ``t_λ`` act as the identity on the weight lattice
+        ``P`` (they lie in ``ker π``).  This is *not* an action of the full
+        affine Weyl group on ``P``; it factors through ``π: W̃ → W``.
+
+        Parameters
+        ----------
+        lam :
+            Weight in fundamental-weight coordinates (length ``n``).
+        """
+        return self.to_finite().act_on_weight(lam)
+
     def __repr__(self) -> str:
         if self.is_identity():
             return f"id({self.group.label})"
