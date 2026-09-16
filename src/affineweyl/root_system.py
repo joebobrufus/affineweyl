@@ -296,6 +296,21 @@ class FiniteRootSystem:
                 count += 1
         return count
 
+    @cached_property
+    def weight_lattice(self) -> "WeightLattice":
+        """Classical weight lattice ``P`` in the fundamental-weight basis."""
+        from .weight_lattice import WeightLattice
+
+        return WeightLattice(root_system=self)
+
+    def fundamental_weight(self, i: int) -> Vector:
+        """Fundamental weight ``ω_i`` (0-based) in fund-weight coordinates."""
+        return self.weight_lattice.fundamental_weight(i)
+
+    def pairing_weight_coroot(self, lam: Sequence[int], j: int) -> int:
+        """``⟨λ, α_j∨⟩`` for ``λ ∈ P`` in fundamental-weight coordinates."""
+        return self.weight_lattice.pairing_weight_coroot(lam, j)
+
 
 def matrix_from_word_on_roots(rs: FiniteRootSystem, word: Iterable[int]) -> Matrix:
     M = _identity(rs.rank)

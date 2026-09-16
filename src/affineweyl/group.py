@@ -305,6 +305,19 @@ class AffineWeylGroup:
                 break
         return result
 
+    @cached_property
+    def weight_lattice(self):
+        """Classical weight lattice ``P`` of the underlying finite root system."""
+        return self.root_system.weight_lattice
+
+    def fundamental_weight(self, i: int) -> Vector:
+        """Fundamental weight ``ω_i`` (0-based finite index) in fund-weight coords."""
+        return self.root_system.fundamental_weight(i)
+
+    def pairing_weight_coroot(self, lam: Sequence[int], j: int) -> int:
+        """``⟨λ, α_j∨⟩`` for finite simple coroot index ``j`` (0-based)."""
+        return self.root_system.pairing_weight_coroot(lam, j)
+
     def __repr__(self) -> str:
         return f"AffineWeylGroup({self.label!r})"
 

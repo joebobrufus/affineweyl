@@ -62,6 +62,28 @@ Translations ``t_λ`` are the elements ``(id, λ)`` in ``W ⋉ Q∨``.  Their af
 (co)root actions are the correct linear maps for ``t_λ`` (not identity
 matrices); in particular ``s_0 = t_{θ∨} ∘ s_θ``.
 
+
+## Weight lattice (finite)
+
+Classical weights live in the fundamental-weight basis: an ``n``-tuple
+``(λ_0, …, λ_{n-1})`` means ``λ = Σ λ_i ω_i``, with ``⟨ω_i, α_j∨⟩ = δ_{ij}``
+(0-based indices, same as finite simple roots).
+
+```python
+from affineweyl import AffineWeylGroup
+
+W = AffineWeylGroup.from_label("A~2")
+P = W.weight_lattice
+omega0 = W.fundamental_weight(0)          # (1, 0)
+assert W.pairing_weight_coroot(omega0, 0) == 1
+assert W.pairing_weight_coroot(omega0, 1) == 0
+assert P.index_P_mod_Q == 3               # |P/Q| = n+1 for A_n
+# simple root α_0 = 2ω_0 - ω_1 in fund-weight coords
+assert P.from_simple_root_coords((1, 0)) == (2, -1)
+assert P.is_in_root_lattice((2, -1))
+assert not P.is_in_root_lattice((1, 0))   # ω_0 ∉ Q for A_2
+```
+
 ## CLI
 
 ```bash

@@ -12,18 +12,28 @@ Root / coroot action
 Elements act on the affine root and coroot lattices (simple-(co)root
 coordinates).  If ``α = w · α_i`` then the associated coroot is
 ``α∨ = w · α_i∨`` — use ``w.root_coroot_pair(i)`` or ``w.associated_coroot(i)``.
+
+Weight lattice
+--------------
+The classical weight lattice ``P`` is exposed via ``W.weight_lattice`` /
+``FiniteRootSystem.weight_lattice``.  Weights are integer tuples in the
+fundamental-weight basis (0-based).  See :mod:`affineweyl.weight_lattice`.
 """
 
 from .element import AffineWeylElement
 from .group import AffineWeylGroup
 from .io import format_element, format_word, parse_element, parse_word
 from .cartan import list_supported_examples, parse_affine_type
+from .weight_lattice import WeightLattice
+from .root_system import FiniteRootSystem
 
 __version__ = "0.1.0"
 
 __all__ = [
     "AffineWeylGroup",
     "AffineWeylElement",
+    "FiniteRootSystem",
+    "WeightLattice",
     "parse_word",
     "parse_element",
     "format_word",
