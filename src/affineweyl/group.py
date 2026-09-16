@@ -378,6 +378,25 @@ class AffineWeylGroup:
         """Finite simple reflection ``s_i`` with ``i`` in ``0 .. n-1``."""
         return FiniteWeylElement.simple(self, i)
 
+    def schubert_localize(self, x, y, *, word=None):
+        """Affine Schubert localization ``σ_x|_y ∈ Sym(P)`` (signed Billey).
+
+        See :func:`affineweyl.schubert.schubert_localize`.  Convention:
+        ``σ_{s_i}|_{s_i} = −α_i`` in ``Sym(P)``.
+        """
+        from .schubert import schubert_localize
+
+        return schubert_localize(x, y, group=self, word=word)
+
+    def finite_schubert_localize(self, v, w, *, word=None):
+        """Finite Schubert localization ``σ_v|_w ∈ Sym(P)`` for ``G/B``.
+
+        See :func:`affineweyl.schubert.finite_schubert_localize`.
+        """
+        from .schubert import finite_schubert_localize
+
+        return finite_schubert_localize(v, w, group=self, word=word)
+
     def __repr__(self) -> str:
         return f"AffineWeylGroup({self.label!r})"
 

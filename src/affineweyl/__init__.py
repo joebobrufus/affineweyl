@@ -30,6 +30,13 @@ acts by graded algebra automorphisms via
 See :mod:`affineweyl.symmetric_algebra`.  The group algebra ``ℤ[P]``
 (Laurent) is not implemented.
 
+Schubert localization
+---------------------
+Affine (primary) and finite equivariant Schubert localizations via the signed
+Billey formula land in ``Sym(P)``: ``W.schubert_localize(x, y)`` /
+:func:`~affineweyl.schubert.schubert_localize`.  Convention
+``σ_{s_i}|_{s_i} = −α_i``.  See :mod:`affineweyl.schubert`.
+
 Finite projection
 -----------------
 ``π: W̃ → W ≅ W̃ / Q∨`` drops translations: ``element.to_finite()`` /
@@ -44,6 +51,14 @@ from .cartan import list_supported_examples, parse_affine_type
 from .weight_lattice import WeightLattice
 from .symmetric_algebra import SymmetricAlgebra, WeightPolynomial, WeightPolynomialRing
 from .root_system import FiniteRootSystem
+from .schubert import (
+    BilleySummand,
+    billey_summands,
+    finite_schubert_localize,
+    finite_schubert_localization,
+    schubert_localize,
+    schubert_localization,
+)
 
 __version__ = "0.1.0"
 
@@ -63,4 +78,10 @@ __all__ = [
     "parse_affine_type",
     "list_supported_examples",
     "__version__",
+    "schubert_localize",
+    "schubert_localization",
+    "finite_schubert_localize",
+    "finite_schubert_localization",
+    "billey_summands",
+    "BilleySummand",
 ]

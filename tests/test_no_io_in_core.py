@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-CORE = ("cartan.py", "root_system.py", "element.py", "finite.py", "group.py", "weight_lattice.py", "symmetric_algebra.py")
+CORE = ("cartan.py", "root_system.py", "element.py", "finite.py", "group.py", "weight_lattice.py", "symmetric_algebra.py", "schubert.py")
 FORBIDDEN = ("print(", "input(", "argparse", "pathlib", "stdout", "stdin", "open(")
 
 

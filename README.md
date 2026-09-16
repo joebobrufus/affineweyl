@@ -140,6 +140,32 @@ assert s0.act_on_polynomial(X0) == R.linear_form(s0.act_on_weight((1, 0)))
 assert s0.act_on_polynomial(f * X1) == s0.act_on_polynomial(f) * s0.act_on_polynomial(X1)
 ```
 
+
+## Schubert localization (affine → Sym(P))
+
+``T``-equivariant Schubert classes for the **affine flag variety** localize at
+torus fixed points via the **signed Billey formula**, with values in the
+existing ``Sym(P) ≅ ℤ[X_i]``:
+
+```python
+from affineweyl import AffineWeylGroup
+from affineweyl.schubert import simple_root_in_sym
+
+W = AffineWeylGroup.from_label("A~2")
+s0, s1 = W.simple(0), W.simple(1)
+# package normalization: σ_{s_i}|_{s_i} = −α_i in Sym(P)
+assert W.schubert_localize(s0, s0) == -simple_root_in_sym(W, 0)
+assert W.schubert_localize(s1, s1) == -simple_root_in_sym(W, 1)
+f = W.schubert_localize(s0, W.from_word([0, 1, 0]))  # WeightPolynomial
+assert W.schubert_localize([0], [0, 1, 0]) == f       # words OK
+```
+
+Affine roots are mapped to ``Sym(P)`` by taking the **finite classical part**
+(forget ``δ``; so ``α_0 = δ − θ ↦ −θ``) and converting with the weight lattice.
+Each Billey factor is then taken with a minus sign so that
+``σ_{s_i}|_{s_i} = −α_i``.  Finite ``G/B`` localization is available as
+``W.finite_schubert_localize(v, w)``.  See ``affineweyl.schubert``.
+
 ## CLI
 
 ```bash
