@@ -348,6 +348,15 @@ class AffineWeylElement:
         """
         return self.to_finite().act_on_weight(lam)
 
+
+    def act_on_polynomial(self, f):
+        """Act on ``f ∈ Sym(P)`` via the finite projection ``π``.
+
+        Equivalent to ``self.to_finite().act_on_polynomial(f)``.  Translations
+        act as the identity on ``Sym(P)``.
+        """
+        return self.to_finite().act_on_polynomial(f)
+
     def __repr__(self) -> str:
         if self.is_identity():
             return f"id({self.group.label})"

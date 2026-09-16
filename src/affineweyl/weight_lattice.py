@@ -16,6 +16,9 @@ The root lattice satisfies ``Q ⊂ P`` with index ``|P/Q| = |det A|``.
 The finite Weyl group acts on ``P``; see :meth:`WeightLattice.act` and
 :meth:`~affineweyl.finite.FiniteWeylElement.act_on_weight`.
 
+The symmetric algebra ``Sym(P) ≅ ℤ[X_0,…,X_{n-1}]`` (fundamental-weight
+variables) is :attr:`symmetric_algebra`; see :mod:`affineweyl.symmetric_algebra`.
+
 No I/O in this module.
 """
 
@@ -32,6 +35,7 @@ from .root_system import FiniteRootSystem, Vector, _dot, _matmul
 if TYPE_CHECKING:
     from .element import AffineWeylElement
     from .finite import FiniteWeylElement
+    from .symmetric_algebra import SymmetricAlgebra
 
 WeightCoords = Tuple[int, ...]  # fundamental-weight basis
 RationalCoords = Tuple[Fraction, ...]
@@ -221,6 +225,17 @@ class WeightLattice:
                 f"WeightLattice({self.series}_{self.rank})"
             )
         return w.act_on_weight(lam)
+
+
+    @cached_property
+    def symmetric_algebra(self) -> "SymmetricAlgebra":
+        """Polynomial ring ``Sym(P) ≅ ℤ[X_0, …, X_{n-1}]`` on fundamental weights.
+
+        See :class:`~affineweyl.symmetric_algebra.SymmetricAlgebra`.
+        """
+        from .symmetric_algebra import SymmetricAlgebra
+
+        return SymmetricAlgebra(weight_lattice=self)
 
     def __repr__(self) -> str:
         return f"WeightLattice({self.series}_{self.rank})"

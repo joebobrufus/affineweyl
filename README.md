@@ -116,6 +116,30 @@ The action uses ``w_roots`` on simple-root coordinates of ``λ`` (over ``Q``),
 then converts back with the Cartan matrix; equivalently
 ``s_i(λ) = λ - ⟨λ, α_i∨⟩ α_i`` in fund-weight coords.
 
+
+## Symmetric algebra Sym(P)
+
+``Sym(P) ≅ ℤ[X_0,…,X_{n-1}]`` with indeterminates equal to the fundamental
+weights.  Coefficients are integers (the ``W``-action preserves ``P``, so no
+``ℚ`` is required).  The group algebra ``ℤ[P]`` (Laurent / negative exponents)
+is **not** implemented.
+
+The finite Weyl group acts by graded algebra automorphisms via the linear
+action on ``P``: ``w · X_i`` is the linear form of ``w · ω_i``, equivalently
+``(w · f)(μ) = f(w^{-1} · μ)`` on ``P*``.
+
+```python
+from affineweyl import AffineWeylGroup
+
+W = AffineWeylGroup.from_label("A~2")
+R = W.symmetric_algebra          # or W.weight_lattice.symmetric_algebra
+X0, X1 = R.variable(0), R.variable(1)
+f = X0**2 + 3 * X0 * X1
+s0 = W.finite_simple(0)
+assert s0.act_on_polynomial(X0) == R.linear_form(s0.act_on_weight((1, 0)))
+assert s0.act_on_polynomial(f * X1) == s0.act_on_polynomial(f) * s0.act_on_polynomial(X1)
+```
+
 ## CLI
 
 ```bash

@@ -11,7 +11,8 @@ Weyl group (elements with ``translation = 0``).
 Homomorphism property: ``π(xy) = π(x) π(y)``.
 
 Finite elements act on the classical weight lattice ``P`` (fundamental-weight
-coordinates) via :meth:`FiniteWeylElement.act_on_weight`.
+coordinates) via :meth:`FiniteWeylElement.act_on_weight`, and on
+``Sym(P)`` via :meth:`FiniteWeylElement.act_on_polynomial`.
 
 No I/O in this module.
 """
@@ -26,6 +27,7 @@ from .root_system import Matrix, Vector, _identity, _matmul, _matmatmul
 
 if TYPE_CHECKING:
     from .group import AffineWeylGroup
+    from .symmetric_algebra import WeightPolynomial
     from .weight_lattice import WeightCoords
 
 
@@ -215,6 +217,23 @@ class FiniteWeylElement:
                 raise ValueError(f"Non-integral weight coordinate {val}")
             out.append(int(val))
         return tuple(out)
+
+
+    def act_on_polynomial(self, f: "WeightPolynomial") -> "WeightPolynomial":
+        """Act on ``f ∈ Sym(P)`` by the graded algebra automorphism induced by ``w``.
+
+        Substitutes ``X_i ↦`` the linear form of ``w · ω_i``, matching
+        :meth:`act_on_weight` on degree-1 polynomials.  See
+        :mod:`affineweyl.symmetric_algebra` for the convention
+        ``(w · f)(μ) = f(w^{-1} · μ)``.
+        """
+        from .symmetric_algebra import WeightPolynomial
+
+        if not isinstance(f, WeightPolynomial):
+            raise TypeError(
+                f"expected WeightPolynomial, got {type(f).__name__}"
+            )
+        return f.ring.act(self, f)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, FiniteWeylElement):

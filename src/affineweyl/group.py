@@ -314,6 +314,20 @@ class AffineWeylGroup:
         """Classical weight lattice ``P`` of the underlying finite root system."""
         return self.root_system.weight_lattice
 
+
+    @cached_property
+    def symmetric_algebra(self):
+        """``Sym(P) ≅ ℤ[X_0,…,X_{n-1}]`` attached to the classical weight lattice."""
+        return self.weight_lattice.symmetric_algebra
+
+    def act_on_polynomial(self, w, f):
+        """Act with a Weyl element on ``f ∈ Sym(P)``.
+
+        Delegates to :meth:`SymmetricAlgebra.act` /
+        :meth:`FiniteWeylElement.act_on_polynomial`.
+        """
+        return self.symmetric_algebra.act(w, f)
+
     def fundamental_weight(self, i: int) -> Vector:
         """Fundamental weight ``ω_i`` (0-based finite index) in fund-weight coords."""
         return self.root_system.fundamental_weight(i)
