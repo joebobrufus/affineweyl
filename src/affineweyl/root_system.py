@@ -254,6 +254,30 @@ class FiniteRootSystem:
         Ay = _matmul(self.cartan, root_coords)
         return _dot(coroot_coords, Ay)
 
+    def coroot_form(self, u: Vector, v: Vector) -> int:
+        """Normalized invariant form ``(u|v)`` on the coroot lattice Q∨.
+
+        With simple-coroot coordinates, ``(α_i∨|α_j∨) = a_{ji} (α_i∨|α_i∨)/2``
+        where ``(α_i∨|α_i∨) = 4/(α_i|α_i)``.  Used for the linear action of
+        translations on the affine coroot lattice.
+        """
+        if len(u) != self.rank or len(v) != self.rank:
+            raise ValueError(
+                f"coroot vectors must have length {self.rank}, got {len(u)}, {len(v)}"
+            )
+        root_lens = _simple_root_lengths_squared(self.cartan)
+        coroot_lens = tuple(Fraction(4) / li for li in root_lens)
+        n = self.rank
+        val = Fraction(0)
+        for i in range(n):
+            for j in range(n):
+                # G∨_ij = a_ji * |α_i∨|^2 / 2
+                Gij = Fraction(self.cartan[j][i]) * coroot_lens[i] / 2
+                val += u[i] * Gij * v[j]
+        if val.denominator != 1:
+            raise ValueError(f"Non-integral coroot form value {val}")
+        return int(val)
+
     def is_positive_root(self, root_coords: Vector) -> bool:
         return root_coords in self._pos_set
 

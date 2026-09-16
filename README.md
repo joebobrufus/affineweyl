@@ -52,7 +52,15 @@ elts = W.elements_up_to_length(3)
 # roots / coroots: α = w·α_i  ⇒  α∨ = w·α_i∨
 alpha, alpha_vee = w.root_coroot_pair(0)
 assert alpha_vee == w.associated_coroot(0)
+# pure translations t_λ from coroot-lattice vectors
+t = W.translation((1, 0))          # t_{α_1∨} in A~2
+assert t.translation == (1, 0)
+assert (t * W.translation((0, 1))).translation == (1, 1)
 ```
+
+Translations ``t_λ`` are the elements ``(id, λ)`` in ``W ⋉ Q∨``.  Their affine
+(co)root actions are the correct linear maps for ``t_λ`` (not identity
+matrices); in particular ``s_0 = t_{θ∨} ∘ s_θ``.
 
 ## CLI
 

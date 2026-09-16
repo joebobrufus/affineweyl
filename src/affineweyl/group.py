@@ -165,6 +165,100 @@ class AffineWeylGroup:
     def s0(self) -> AffineWeylElement:
         return self._make_s0()
 
+    def _aff_matrices_of_translation(self, lam: Vector) -> Tuple[Matrix, Matrix]:
+        """Affine (co)root matrices of the pure translation ``t_λ``.
+
+        On roots (untwisted): ``t_λ(β + mδ) = β + (m - ⟨λ, β⟩)δ``.
+        In affine simple-root coordinates, with ``α_0 = δ - θ``::
+
+            c'_0 = c_0 - ⟨λ, β⟩,
+            c'_i = c_i - ⟨λ, β⟩ θ_i   (i = 1..n),
+
+        where ``β_i = c_i - c_0 θ_i`` is the finite root part.
+
+        On coroots the same shape holds with ``θ∨`` and the invariant form
+        ``(λ|γ)`` on Q∨ in place of ``⟨λ, β⟩``.
+        """
+        rs = self.root_system
+        n = self.finite_rank
+        a = self.affine_rank
+        theta = rs.highest_root
+        theta_vee = rs.highest_coroot
+
+        roots_rows: List[List[int]] = [[0] * a for _ in range(a)]
+        for j in range(a):
+            c = [1 if k == j else 0 for k in range(a)]
+            c0 = c[0]
+            beta = tuple(c[i + 1] - c0 * theta[i] for i in range(n))
+            pair = rs.pairing(lam, beta)
+            roots_rows[0][j] = c0 - pair
+            for i in range(n):
+                roots_rows[i + 1][j] = c[i + 1] - pair * theta[i]
+
+        coroots_rows: List[List[int]] = [[0] * a for _ in range(a)]
+        for j in range(a):
+            d = [1 if k == j else 0 for k in range(a)]
+            d0 = d[0]
+            gamma = tuple(d[i + 1] - d0 * theta_vee[i] for i in range(n))
+            pair = rs.coroot_form(lam, gamma)
+            coroots_rows[0][j] = d0 - pair
+            for i in range(n):
+                coroots_rows[i + 1][j] = d[i + 1] - pair * theta_vee[i]
+
+        return (
+            tuple(tuple(r) for r in roots_rows),
+            tuple(tuple(r) for r in coroots_rows),
+        )
+
+    def translation(self, lam: Sequence[int]) -> AffineWeylElement:
+        """Return the pure translation ``t_λ`` in ``W ⋉ Q∨``.
+
+        Parameters
+        ----------
+        lam :
+            Coefficients of ``λ ∈ Q∨`` in the finite simple-coroot basis
+            ``α_1∨, …, α_n∨`` (length ``finite_rank``).
+
+        Returns
+        -------
+        AffineWeylElement
+            The element ``(id, λ)``, i.e. finite Weyl part = identity and
+            ``translation = tuple(lam)``, with affine (co)root actions equal
+            to the linear action of ``t_λ`` (not the identity matrices).
+
+        Notes
+        -----
+        Consistent with ``s_0 = t_{θ∨} ∘ s_θ`` from :meth:`_make_s0`: one has
+        ``W.simple(0) == W.translation(θ∨) * s_θ`` when ``s_θ`` is the finite
+        reflection in the highest root (embedded via ``s_1…s_n``).
+        Translations multiply by adding lattice vectors:
+        ``t_λ * t_μ = t_{λ+μ}``.
+        """
+        n = self.finite_rank
+        if len(lam) != n:
+            raise ValueError(
+                f"translation vector has length {len(lam)}, expected {n}"
+            )
+        coords: List[int] = []
+        for i, x in enumerate(lam):
+            if isinstance(x, bool) or not isinstance(x, int):
+                raise TypeError(
+                    f"translation coordinate {i} must be an int, got {type(x).__name__}"
+                )
+            coords.append(x)
+        lam_t: Vector = tuple(coords)
+        if all(x == 0 for x in lam_t):
+            return self.identity()
+        aff_roots, aff_coroots = self._aff_matrices_of_translation(lam_t)
+        return AffineWeylElement(
+            group=self,
+            w_coroots=_identity(n),
+            w_roots=_identity(n),
+            translation=lam_t,
+            aff_roots=aff_roots,
+            aff_coroots=aff_coroots,
+        )
+
     def identity(self) -> AffineWeylElement:
         return AffineWeylElement.identity(self)
 
