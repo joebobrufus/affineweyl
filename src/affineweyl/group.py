@@ -1,0 +1,218 @@
+"""Affine Weyl groups (untwisted) as Coxeter groups realized by W ⋉ Q∨.
+
+No I/O in this module.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from functools import cached_property
+from typing import List, Sequence, Set, Tuple
+
+from .cartan import (
+    Matrix,
+    canonical_label,
+    coxeter_from_cartan,
+    parse_affine_type,
+    validate_rank,
+)
+from .element import AffineWeylElement
+from .root_system import (
+    FiniteRootSystem,
+    Vector,
+    _identity,
+    reflection_on_coroots,
+    reflection_on_roots,
+)
+
+
+def _affine_cartan(finite: Matrix, highest_root: Vector, highest_coroot: Vector) -> Matrix:
+    """Build the untwisted affine Cartan matrix of size (n+1) x (n+1).
+
+    Indexing: row/col 0 = affine node; 1..n = finite nodes 0..n-1.
+    a_{0,i+1} = -⟨θ∨, α_i⟩, a_{i+1,0} = -⟨α_i∨, θ⟩.
+    """
+    n = len(finite)
+    a0 = []
+    for i in range(n):
+        val = sum(highest_coroot[r] * finite[r][i] for r in range(n))
+        a0.append(-val)
+    ai0 = []
+    for i in range(n):
+        val = sum(finite[i][c] * highest_root[c] for c in range(n))
+        ai0.append(-val)
+
+    rows: List[List[int]] = [[0] * (n + 1) for _ in range(n + 1)]
+    rows[0][0] = 2
+    for i in range(n):
+        rows[0][i + 1] = a0[i]
+        rows[i + 1][0] = ai0[i]
+        for j in range(n):
+            rows[i + 1][j + 1] = finite[i][j]
+    return tuple(tuple(r) for r in rows)
+
+
+@dataclass(frozen=True)
+class AffineWeylGroup:
+    """Untwisted affine Weyl group of a given type.
+
+    Parameters
+    ----------
+    series :
+        One of ``A,B,C,D,E,F,G``.
+    n :
+        Finite rank (affine rank is ``n+1``).
+    """
+
+    series: str
+    n: int
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "series", self.series.upper())
+        validate_rank(self.series, self.n)
+
+    @classmethod
+    def from_label(cls, label: str) -> "AffineWeylGroup":
+        series, n = parse_affine_type(label)
+        return cls(series=series, n=n)
+
+    @property
+    def label(self) -> str:
+        return canonical_label(self.series, self.n)
+
+    @property
+    def finite_rank(self) -> int:
+        return self.n
+
+    @property
+    def affine_rank(self) -> int:
+        """Number of simple generators (n+1)."""
+        return self.n + 1
+
+    @cached_property
+    def root_system(self) -> FiniteRootSystem:
+        return FiniteRootSystem.create(self.series, self.n)
+
+    @cached_property
+    def finite_cartan(self) -> Matrix:
+        return self.root_system.cartan
+
+    @cached_property
+    def cartan_matrix(self) -> Matrix:
+        rs = self.root_system
+        return _affine_cartan(rs.cartan, rs.highest_root, rs.highest_coroot)
+
+    @cached_property
+    def coxeter_matrix(self) -> Matrix:
+        return coxeter_from_cartan(self.cartan_matrix)
+
+    @cached_property
+    def affine_simple_on_roots(self) -> Tuple[Matrix, ...]:
+        """Reflection matrices of s_0..s_n on affine simple-root coordinates."""
+        C = self.cartan_matrix
+        return tuple(reflection_on_roots(C, i) for i in range(self.affine_rank))
+
+    @cached_property
+    def affine_simple_on_coroots(self) -> Tuple[Matrix, ...]:
+        """Reflection matrices of s_0..s_n on affine simple-coroot coordinates."""
+        C = self.cartan_matrix
+        return tuple(reflection_on_coroots(C, i) for i in range(self.affine_rank))
+
+    def simple_root(self, i: int) -> Vector:
+        """Affine simple root ``α_i`` as a standard basis vector in Z^{n+1}."""
+        if i < 0 or i >= self.affine_rank:
+            raise IndexError(i)
+        return tuple(1 if j == i else 0 for j in range(self.affine_rank))
+
+    def simple_coroot(self, i: int) -> Vector:
+        """Affine simple coroot ``α_i∨`` as a standard basis vector in Z^{n+1}."""
+        if i < 0 or i >= self.affine_rank:
+            raise IndexError(i)
+        return tuple(1 if j == i else 0 for j in range(self.affine_rank))
+
+    def _make_s0(self) -> AffineWeylElement:
+        """Affine simple reflection s_0 = t_{θ∨} ∘ s_θ."""
+        rs = self.root_system
+        theta = rs.highest_root
+        theta_vee = rs.highest_coroot
+        n = self.n
+        rows_r = []
+        for j in range(n):
+            ej = tuple(1 if k == j else 0 for k in range(n))
+            coef = rs.pairing(theta_vee, ej)
+            img = tuple(ej[k] - coef * theta[k] for k in range(n))
+            rows_r.append(img)
+        w_roots = tuple(tuple(rows_r[c][r] for c in range(n)) for r in range(n))
+
+        rows_c = []
+        for j in range(n):
+            ej = tuple(1 if k == j else 0 for k in range(n))
+            coef = sum(rs.cartan[j][c] * theta[c] for c in range(n))
+            img = tuple(ej[k] - coef * theta_vee[k] for k in range(n))
+            rows_c.append(img)
+        w_coroots = tuple(tuple(rows_c[c][r] for c in range(n)) for r in range(n))
+
+        return AffineWeylElement(
+            group=self,
+            w_coroots=w_coroots,
+            w_roots=w_roots,
+            translation=theta_vee,
+            aff_roots=self.affine_simple_on_roots[0],
+            aff_coroots=self.affine_simple_on_coroots[0],
+        )
+
+    @property
+    def s0(self) -> AffineWeylElement:
+        return self._make_s0()
+
+    def identity(self) -> AffineWeylElement:
+        return AffineWeylElement.identity(self)
+
+    def simple(self, i: int) -> AffineWeylElement:
+        return AffineWeylElement.simple(self, i)
+
+    def generators(self) -> Tuple[AffineWeylElement, ...]:
+        return tuple(self.simple(i) for i in range(self.affine_rank))
+
+    def from_word(self, word: Sequence[int]) -> AffineWeylElement:
+        """Product ``s_{i1} ... s_{ik}`` (left-to-right multiplication)."""
+        x = self.identity()
+        for i in word:
+            x = x * self.simple(int(i))
+        return x
+
+    def is_reduced(self, word: Sequence[int]) -> bool:
+        """Return True iff ``word`` is a reduced expression."""
+        return self.from_word(word).length == len(word)
+
+    def m(self, i: int, j: int) -> int:
+        """Coxeter integer m_{ij} (0 means infinity)."""
+        return self.coxeter_matrix[i][j]
+
+    def elements_up_to_length(self, max_length: int) -> List[AffineWeylElement]:
+        """Enumerate all elements of length ``<= max_length`` (BFS)."""
+        if max_length < 0:
+            return []
+        identity = self.identity()
+        result: List[AffineWeylElement] = [identity]
+        by_len: List[List[AffineWeylElement]] = [[identity]]
+        seen: Set[AffineWeylElement] = {identity}
+        for ell in range(max_length):
+            nxt: List[AffineWeylElement] = []
+            for x in by_len[ell]:
+                for i in range(self.affine_rank):
+                    y = x.right_multiply_simple(i)
+                    if y.length == ell + 1 and y not in seen:
+                        seen.add(y)
+                        nxt.append(y)
+                        result.append(y)
+            by_len.append(nxt)
+            if not nxt:
+                break
+        return result
+
+    def __repr__(self) -> str:
+        return f"AffineWeylGroup({self.label!r})"
+
+
+__all__ = ["AffineWeylGroup"]
